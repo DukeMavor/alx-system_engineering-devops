@@ -1,4 +1,5 @@
-pache on holbertonschool/265-0 container
+# codes the enable the holberton docker to run a webpage
 
-echo "ServerName localhost" >> /etc/apache2.conf
-service apache2 start
+sudo apt install apache2
+
+sudo service apache2 start
