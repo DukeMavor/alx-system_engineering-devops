@@ -1,3 +1,4 @@
+Sudo ufw enable
 ufw disable
 ufw default deny incoming
 ufw allow 22/tcp
