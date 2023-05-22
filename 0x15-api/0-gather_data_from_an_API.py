@@ -1,52 +1,32 @@
 #!/usr/bin/python3
-"""Script to get information from the TODO api endpoint as it
-pertains to a particular employee identified by ID."""
+
 import requests
 import sys
 
+if len(sys.argv) < 2:
+    print("Please provide an employee ID")
+    sys.exit(1)
 
-user_endpoint = "https://jsonplaceholder.typicode.com/users/"
+employee_id = int(sys.argv[1])
+url = "https://jsonplaceholder.typicode.com/users/{}/todos".format(
+    employee_id)
 
+response = requests.get(url)
 
-def get_todos_by_userid(user_id):
-    """Get TODO list for a user identified by `user_id`"""
-    todos = requests.get(user_endpoint + user_id + '/todos')
-    try:
-        todos.raise_for_status()
-        return todos.json()
-    except:
-        exit(1)
+if response.status_code != 200:
+    print("Error retrieving TODO list")
+    sys.exit(1)
 
+todos = response.json()
+total_tasks = len(todos)
+completed_tasks = sum(1 for todo in todos if todo.get('completed'))
 
-def get_user_by_userid(user_id):
-    """Get user identified by `user_id`"""
-    user = requests.get(user_endpoint + user_id)
-    try:
-        user.raise_for_status()
-        return user.json()
-    except:
-        exit(1)
+employee_name = requests.get("https://jsonplaceholder.typicode.com/users/{}"
+                             .format(employee_id)).json().get('name')
 
+print("Employee {} is done with tasks({}/{}):".format(
+    employee_name, completed_tasks, total_tasks))
 
-def format_user_todos(user_id):
-    """Format employee TODO list as a string"""
-    todos = get_todos_by_userid(user_id)
-    completed = list(filter(lambda t: t.get('completed') is True, todos))
-    name = get_user_by_userid(user_id).get('name')
-    output = "Employee {} is done with tasks({}/{}):".format(name,
-                                                             len(completed),
-                                                             len(todos))
-    titles = '\n\t '.join(map(lambda c: c.get('title', ''), completed))
-    if not titles:
-        return output
-    return output + '\n\t ' + titles
-
-
-if __name__ == "__main__":
-    """Get user_id as command line parameter and print out the completed
-    tasks for the user associated with that id"""
-    if len(sys.argv) < 2:
-        print("Usage: ./0-gather_data_from_an_API.py <employee_id>")
-        exit(1)
-    user_id = sys.argv[1]
-    print(format_user_todos(user_id))
+for todo in todos:
+    if todo.get('completed'):
+        print("\t {}".format(todo.get('title')))
