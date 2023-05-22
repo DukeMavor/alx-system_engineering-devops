@@ -1,32 +1,25 @@
 #!/usr/bin/python3
-
+"""gets api"""
 import requests
-import sys
+from sys import argv
 
-if len(sys.argv) < 2:
-    print("Please provide an employee ID")
-    sys.exit(1)
 
-employee_id = int(sys.argv[1])
-url = "https://jsonplaceholder.typicode.com/users/{}/todos".format(
-    employee_id)
+def todo(userid):
+    """doc stringed"""
+    name = requests.get(
+        'https://jsonplaceholder.typicode.com/users/{}'.format(
+            userid)).json().get('name')
+    tasks = requests.get(
+        'https://jsonplaceholder.typicode.com/users/{}/todos'.format(
+            userid)).json()
+    tasksDone = ['\t {}\n'.format(dic.get('title')) for dic in tasks
+                 if dic.get('completed')]
+    if name and tasks:
+        print("Employee {} is done with tasks({}/{}):".format
+              (name, len(tasksDone), len(tasks)))
+        print(''.join(tasksDone), end='')
 
-response = requests.get(url)
 
-if response.status_code != 200:
-    print("Error retrieving TODO list")
-    sys.exit(1)
-
-todos = response.json()
-total_tasks = len(todos)
-completed_tasks = sum(1 for todo in todos if todo.get('completed'))
-
-employee_name = requests.get("https://jsonplaceholder.typicode.com/users/{}"
-                             .format(employee_id)).json().get('name')
-
-print("Employee {} is done with tasks({}/{}):".format(
-    employee_name, completed_tasks, total_tasks))
-
-for todo in todos:
-    if todo.get('completed'):
-        print("\t {}".format(todo.get('title')))
+if __name__ == "__main__":
+    if len(argv) == 2:
+        todo(int(argv[1]))
